@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RuHa Valgflæsk - Status Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .header .subtitle {
+            color: #718096;
+            font-size: 1.2em;
+        }
+        
+        .countdown {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .countdown h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .countdown .days {
+            font-size: 3em;
+            font-weight: bold;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-card .number {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .stat-card .label {
+            color: #718096;
+            font-size: 1.1em;
+        }
+        
+        .stat-card.green .number { color: #48bb78; }
+        .stat-card.yellow .number { color: #ecc94b; }
+        .stat-card.red .number { color: #f56565; }
+        
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .task-list {
+            list-style: none;
+        }
+        
+        .task-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+        
+        .task-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .task-item.done {
+            background: #c6f6d5;
+            border-left: 5px solid #48bb78;
+        }
+        
+        .task-item.inprogress {
+            background: #fefcbf;
+            border-left: 5px solid #ecc94b;
+        }
+        
+        .task-item.pending {
+            background: #fed7d7;
+            border-left: 5px solid #f56565;
+        }
+        
+        .task-icon {
+            font-size: 1.5em;
+            margin-right: 15px;
+        }
+        
+        .task-content {
+            flex: 1;
+        }
+        
+        .task-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .task-description {
+            color: #718096;
+            font-size: 0.9em;
+        }
+        
+        .progress-bar-container {
+            background: #e2e8f0;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78 0%, #38a169 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 0.5s ease;
+        }
+        
+        .critical-alert {
+            background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(245, 101, 101, 0.3);
+        }
+        
+        .critical-alert h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        .critical-alert ul {
+            list-style-position: inside;
+        }
+        
+        .critical-alert li {
+            padding: 5px 0;
+            font-size: 1.1em;
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .contact-card {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .contact-name {
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+        
+        .contact-role {
+            color: #718096;
+            font-size: 0.9em;
+        }
+        
+        .contact-status {
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🗳️ Valgflæsk Status Dashboard</h1>
+            <p class="subtitle">Rudkøbing Handel • 1. November 2024</p>
+        </div>
+
+        <!-- Countdown -->
+        <div class="countdown">
+            <h2>⏰ TID TIL EVENT</h2>
+            <div class="days" id="countdown">Beregner...</div>
+            <p>Dage tilbage til Valgflæsk</p>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card green">
+                <div class="label">Færdige Opgaver</div>
+                <div class="number">4</div>
+                <div class="label">✅ Klar</div>
+            </div>
+            
+            <div class="stat-card yellow">
+                <div class="label">I Gang</div>
+                <div class="number">3</div>
+                <div class="label">⏳ Arbejder på det</div>
+            </div>
+            
+            <div class="stat-card red">
+                <div class="label">Mangler</div>
+                <div class="number">8</div>
+                <div class="label">❌ Skal gøres NU</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="label">Samlet Fremgang</div>
+                <div class="number" style="color: #667eea;">27%</div>
+                <div class="label">📊 Status</div>
+            </div>
+        </div>
+
+        <!-- Critical Alert -->
+        <div class="critical-alert">
+            <h3>🚨 KRITISKE OPGAVER - GØR NU!</h3>
+            <ul>
+                <li>⚡ El-forsyning (Bønnelykke) - MEGET KRITISK</li>
+                <li>🔥 Kogeplader/blus (Christian) - KRITISK</li>
+                <li>🔊 Lydsystem - KRITISK</li>
+                <li>🪑 Borde (Jane Jegind) - KRITISK</li>
+                <li>📢 Facebook markedsføring - VIGTIGT</li>
+                <li>📻 Radio Langeland - VIGTIGT</li>
+                <li>☔ Plan B ved dårligt vejr - BESLUTNING NØDVENDIG</li>
+            </ul>
+        </div>
+
+        <!-- Overall Progress -->
+        <div class="section">
+            <h2>📊 Samlet Fremgang</h2>
+            <div class="progress-bar-container">
+                <div class="progress-bar" style="width: 27%;">27% Færdig</div>
+            </div>
+            <p style="margin-top: 10px; color: #718096;">4 af 15 opgaver er helt færdige. 3 er i gang. 8 mangler stadig.</p>
+        </div>
+
+        <!-- Completed Tasks -->
+        <div class="section">
+            <h2>✅ Færdige Opgaver</h2>
+            <ul class="task-list">
+                <li class="task-item done">
+                    <span class="task-icon">✅</span>
+                    <div class="task-content">
+                        <div class="task-title">Invitation sendt ud</div>
+                        <div class="task-description">Alle partier er inviteret. Tommy, Søren Hansen og Camilla Nygaard har accepteret.</div>
+                    </div>
+                </li>
+                <li class="task-item done">
+                    <span class="task-icon">✅</span>
+                    <div class="task-content">
+                        <div class="task-title">Ordstyrer fundet</div>
+                        <div class="task-description">Egon Sohnesen har accepteret. Møde onsdag hos Manfred til briefing.</div>
+                    </div>
+                </li>
+                <li class="task-item done">
+                    <span class="task-icon">✅</span>
+                    <div class="task-content">
+                        <div class="task-title">Annonce klar</div>
+                        <div class="task-description">Manfred laver annonce baseret på sidste års. Reserveret i Øboen.</div>
+                    </div>
+                </li>
+                <li class="task-item done">
+                    <span class="task-icon">✅</span>
+                    <div class="task-content">
+                        <div class="task-title">Telt-løsning besluttet</div>
+                        <div class="task-description">Pavillioner i stedet for stort telt. Vinimport og Spodsbjerg kan ikke hjælpe.</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- In Progress Tasks -->
+        <div class="section">
+            <h2>⏳ Opgaver I Gang</h2>
+            <ul class="task-list">
+                <li class="task-item inprogress">
+                    <span class="task-icon">⏳</span>
+                    <div class="task-content">
+                        <div class="task-title">Annonce til korrektion</div>
+                        <div class="task-description">Sendes til Birger og Poul til godkendelse, derefter publiceres.</div>
+                    </div>
+                </li>
+                <li class="task-item inprogress">
+                    <span class="task-icon">⏳</span>
+                    <div class="task-content">
+                        <div class="task-title">Priser på flæsk</div>
+                        <div class="task-description">Kim fra Brugsen arbejder på priser. 2 kg pr. parti/liste.</div>
+                    </div>
+                </li>
+                <li class="task-item inprogress">
+                    <span class="task-icon">⏳</span>
+                    <div class="task-content">
+                        <div class="task-title">Tilladelser fra kommune</div>
+                        <div class="task-description">Afventer svar - ved få telte behøves måske ikke tilladelse.</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Pending Tasks -->
+        <div class="section">
+            <h2>❌ Manglende Opgaver</h2>
+            <ul class="task-list">
+                <li class="task-item pending">
+                    <span class="task-icon">❌</span>
+                    <div class="task-content">
+                        <div class="task-title">El-forsyning (MEGET KRITISK!)</div>
+                        <div class="task-description">Kontakt Bønnelykke. Skal have el til 11 kogeplader + lydsystem.</div>
+                    </div>
+                </li>
+                <li class="task-item pending">
+                    <span class="task-icon">❌</span>
+                    <div class="task-content">
+                        <div class="task-title">Kogeplader/Blus (KRITISK!)</div>
+                        <div class="task-description">Kontakt Christian. Behov for 11 blus til stegning.</div>
+                    </div>
+                </li>
+                <li class="task-item pending">
+                    <span class="task-icon">❌</span>
+                    <div class="task-content">
+                        <div class="task-title">Lydsystem (KRITISK!)</div>
+                        <div class="task-description">Højtaleranlæg med mikser. Kontaktperson ikke fundet endnu.</div>
+                    </div>
+                </li>
+                <li class="task-item pending">
+                    <span class="task-icon">❌</span>
+                    <div class="task-content">
+                        <div class="task-title">Borde (KRITISK!)</div>
+                        <div class="task-description">Spørg Jane Jegind om lån af borde til event.</div>
+                    </div>
+                </li>
+                <li class="task-item pending">
+                    <span class="task-icon">❌</span>
+                    <div class="task-content">
+                        <div class="task-title">Facebook markedsføring</div>
+                        <div class="task-description">Lave opslag til RuHa FB side som kan deles bredt.</div>
+                    </div>
+                </li>
+                <li class="task-item pending">
+                    <span class="task-icon">❌</span>
+                    <div class="task-content">
+                        <div class="task-title">Radio Langeland</div>
+                        <div class="task-description">Find kontaktperson og promover event.</div>
+                    </div>
+                </li>
+                <li class="task-item pending">
+                    <span class="task-icon">❌</span>
+                    <div class="task-content">
+                        <div class="task-title">Plan B ved dårligt vejr</div>
+                        <div class="task-description">Beslut om vi bruger tom butik ved gamle rådhus eller dropper event.</div>
+                    </div>
+                </li>
+                <li class="task-item pending">
+                    <span class="task-icon">❌</span>
+                    <div class="task-content">
+                        <div class="task-title">Pavillon-leverandør</div>
+                        <div class="task-description">Find alternativ efter Vinimport og Spodsbjerg sagde nej.</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Contact List -->
+        <div class="section">
+            <h2>👥 Kontaktliste</h2>
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <div class="contact-name">Egon Sohnesen</div>
+                    <div class="contact-role">Ordstyrer/Tovholder</div>
+                    <div class="contact-status" style="color: #48bb78;">✅ Accepteret - Møde onsdag</div>
+                </div>
+                
+                <div class="contact-card">
+                    <div class="contact-name">Manfred</div>
+                    <div class="contact-role">Annonce</div>
+                    <div class="contact-status" style="color: #ecc94b;">⏳ Arbejder på annonce</div>
+                </div>
+                
+                <div class="contact-card">
+                    <div class="contact-name">Birger</div>
+                    <div class="contact-role">Korrektion</div>
+                    <div class="contact-status" style="color: #ecc94b;">⏳ Venter på annonce</div>
+                </div>
+                
+                <div class="contact-card">
+                    <div class="contact-name">Kim (Brugsen)</div>
+                    <div class="contact-role">Flæsk-leverandør</div>
+                    <div class="contact-status" style="color: #ecc94b;">⏳ Arbejder på pris</div>
+                </div>
+                
+                <div class="contact-card">
+                    <div class="contact-name">Christian</div>
+                    <div class="contact-role">Kogeplader/Blus</div>
+                    <div class="contact-status" style="color: #f56565;">❌ Ikke kontaktet</div>
+                </div>
+                
+                <div class="contact-card">
+                    <div class="contact-name">Bønnelykke</div>
+                    <div class="contact-role">El-forsyning</div>
+                    <div class="contact-status" style="color: #f56565;">❌ Ikke kontaktet - KRITISK</div>
+                </div>
+                
+                <div class="contact-card">
+                    <div class="contact-name">Jane Jegind</div>
+                    <div class="contact-role">Borde</div>
+                    <div class="contact-status" style="color: #f56565;">❌ Ikke kontaktet</div>
+                </div>
+                
+                <div class="contact-card">
+                    <div class="contact-name">Radio Langeland</div>
+                    <div class="contact-role">Promovering</div>
+                    <div class="contact-status" style="color: #f56565;">❌ Kontakt ukendt</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Meetings -->
+        <div class="section">
+            <h2>📅 Kommende Møder</h2>
+            <div style="background: #f7fafc; padding: 20px; border-radius: 10px; border-left: 4px solid #667eea;">
+                <h3 style="color: #2d3748; margin-bottom: 10px;">Briefing med Egon Sohnesen</h3>
+                <p><strong>Hvornår:</strong> Onsdag (dato ikke specificeret)</p>
+                <p><strong>Hvor:</strong> Hos Manfred</p>
+                <p><strong>Deltagere:</strong> Egon, Poul, Manfred</p>
+                <p><strong>Formål:</strong> Briefing af ordstyrer, format for debat, tidsstyring</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Countdown til 1. november 2024
+        function updateCountdown() {
+            const eventDate = new Date('2024-11-01T00:00:00');
+            const now = new Date();
+            const diff = eventDate - now;
+            
+            if (diff > 0) {
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                
+                document.getElementById('countdown').innerHTML = days + ' dage';
+                
+                if (days <= 3) {
+                    document.querySelector('.countdown').style.background = 'linear-gradient(135deg, #fc8181 0%, #f56565 100%)';
+                }
+            } else {
+                document.getElementById('countdown').innerHTML = 'EVENT I DAG! 🎉';
+            }
+        }
+        
+        updateCountdown();
+        setInterval(updateCountdown, 60000); // Opdater hvert minut
+    </script>
+</body>
+</html>
